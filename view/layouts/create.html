@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tạo bộ từ vựng mới</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+<body>
+  <div class="main">
+    <div class="form-card">
+      <div class="form-title">
+        <img src="/images/iconthem.png" alt="Tạo bộ từ vựng" class="form-icon" />
+        <h1>Tạo bộ từ vựng mới</h1>
+      </div>
+      <form id="vocabForm">
+        <label><span class="material-symbols-outlined icon-label">folder</span> Tên bộ từ vựng:</label>
+        <input type="text" id="name_btv" required />
+        <div id="wordList">
+          <div class="word-row">
+            <input type="text" placeholder="Từ tiếng Việt" class="vn" />
+            <input type="text" placeholder="Nghĩa tiếng Anh" class="en" />
+          </div>
+        </div>
+        <button type="button" onclick="addWord()" class="btn gradient">➕ Thêm từ</button>
+        <button type="submit" class="btn success">✅ Lưu bộ từ vựng</button>
+        <input type="hidden" id="id_btv" />
+      </form>
+    </div>
+  </div>
+  <img src="/images/icon.png" class="corner-image" alt="nhân vật học sinh" />
+
+  <script>
+  let isEditMode = false;
+
+  function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("show");
+  }
+
+  function addWord(vn = "", en = "") {
+    const wordList = document.getElementById("wordList");
+    const row = document.createElement("div");
+    row.className = "word-row";
+    row.innerHTML = `
+      <input type="text" placeholder="Từ tiếng Việt" class="vn" value="${vn}" />
+      <input type="text" placeholder="Nghĩa tiếng Anh" class="en" value="${en}" />
+    `;
+    wordList.appendChild(row);
+  }
+
+  window.onload = async function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id_btv = urlParams.get("edit");
+
+    if (id_btv) {
+      isEditMode = true;
+      document.querySelector("h1").textContent = "Sửa bộ từ vựng";
+      document.getElementById("id_btv").value = id_btv;
+
+      try {
+        const resSet = await fetch("/vocab-sets");
+        const sets = await resSet.json();
+        const current = sets.find(s => s.id_btv == id_btv);
+        if (!current) return alert("Không tìm thấy bộ từ vựng!");
+
+        document.getElementById("name_btv").value = current.name_btv;
+
+        const resWords = await fetch(`/flashcards/${id_btv}`);
+        const words = await resWords.json();
+        document.getElementById("wordList").innerHTML = "";
+        words.forEach(w => addWord(w.nghia_TV, w.tu_TA));
+      } catch (err) {
+        console.error("Lỗi khi load dữ liệu sửa:", err);
+        alert("Không thể tải dữ liệu sửa");
+      }
+    }
+  };
+
+  document.getElementById("vocabForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const name_btv = document.getElementById("name_btv").value.trim();
+    const id_btv = document.getElementById("id_btv").value;
+    const words = [];
+
+    document.querySelectorAll("#wordList .word-row").forEach(row => {
+      const vn = row.querySelector(".vn")?.value.trim();
+      const en = row.querySelector(".en")?.value.trim();
+      if (vn && en) words.push({ tu_TA: en, nghia_TV: vn });
+    });
+
+    if (!name_btv || words.length === 0) {
+      return alert("Vui lòng nhập tên bộ và ít nhất một từ");
+    }
+
+    try {
+      let res;
+      if (isEditMode) {
+        res = await fetch(`/flashcards/update/${id_btv}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name_btv, words })
+        });
+      } else {
+        res = await fetch("/vocab-sets", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name_btv, words })
+        });
+      }
+
+      const result = await res.json();
+      alert(result.message || result.error);
+      if (res.ok) window.location.href = "/list";
+    } catch (err) {
+      console.error("❌ Lỗi gửi lên server:", err);
+      alert("Không thể cập nhật flashcard");
+    }
+  });
+</script>
+</body>
+</html>

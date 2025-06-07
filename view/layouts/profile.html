@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+
+  <div class="max-w-4xl mx-auto p-6 mt-10 bg-white rounded-2xl shadow-md">
+    <!-- Header -->
+    <div class="flex items-center space-x-6">
+      <img src="/images/avt.JPG" alt="Avatar" class="w-24 h-24 rounded-full border-4 border-blue-500" />
+      <div>
+        <h1 class="text-2xl font-bold" id="username">Hoàng Thị Minh</h1>
+      </div>
+    </div>
+
+
+    <!-- Skills -->
+    <div class="mt-6" id="btv">
+      <h2 class="text-lg font-semibold mb-2">Bộ từ vựng</h2>
+      <ul class="grid grid-cols-2 gap-4 text-sm text-gray-700">
+
+    </div>
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Điểm trung bình:</h2>
+      <ul class="grid grid-cols-2 gap-4 text-sm text-gray-700" id="average-score">
+        <li>Chưa có điểm</li>
+
+    </div>
+
+    <script>
+      async function loadProfile() {
+        try {
+          const res = await fetch("/api/profile");
+          const data = await res.json();
+
+          if (!res.ok) {
+            console.error("Lỗi phản hồi:", data.error);
+            return;
+          }
+
+          // 👤 Cập nhật tên người dùng
+          document.getElementById("username").innerText = data.username || "Không rõ";
+
+          // 📚 Cập nhật danh sách bộ từ vựng
+          const btvBox = document.getElementById("btv").querySelector("ul");
+          btvBox.innerHTML = "";
+
+          if (Array.isArray(data.vocab_sets) && data.vocab_sets.length > 0) {
+            data.vocab_sets.forEach(name => {
+              const li = document.createElement("li");
+              li.textContent = `• ${name}`;
+              btvBox.appendChild(li);
+            });
+          } else {
+            btvBox.innerHTML = "<li>Chưa có bộ từ vựng nào</li>";
+          }
+
+          // 📊 Cập nhật điểm trung bình
+          const scoreBox = document.getElementById("average-score");
+          if (scoreBox) {
+            scoreBox.innerHTML = `<li>${data.average_score} điểm</li>`;
+          }
+
+        } catch (err) {
+          console.error("❌ Không thể tải thông tin người dùng:", err);
+        }
+      }
+
+      // Gọi hàm khi trang tải
+      window.onload = loadProfile;
+    </script>
+
+</body>
+
+</html>

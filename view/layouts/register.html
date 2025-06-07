@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form action="">
+        <h1>Đăng ký</h1>
+        <label for="username">Tên đăng nhập:</label><br>
+        <input type="text" id="username" name="username"><br>
+        <label for="password">Mật khẩu:</label><br>
+        <input type="password" id="password" name="password"><br>
+        <label for="confirm_password">Xác nhận mật khẩu:</label><br>
+        <input type="password" id="confirm_password" name="confirm_password"><br>
+        <p id="error_message"></p>
+        <button type="submit">Đăng ký</button>
+    </form>
+
+    <script>
+        // JavaScript code to handle form submission and validation
+        document.querySelector('form').addEventListener('submit', async(event) => {
+            event.preventDefault(); // Prevent the default form submission
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            if (password !== confirmPassword) {
+                alert('Mật khẩu không khớp!');
+                return;
+            }
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                //    alert('Đăng ký thành công!');
+                    window.location.href = '/login'; // Redirect to login page
+                } else {
+                    document.getElementById('error_message').innerText = data.message;
+                    console.log(data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Đã xảy ra lỗi trong quá trình đăng ký.');
+            }
+        
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Học với flashcard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <!-- Main Content -->
+  <div class="main flashcard-page">
+    <h1>🧠 Học với Flashcard</h1>
+
+    <select id="vocabSelect">
+      <option disabled selected>Chọn bộ từ vựng</option>
+    </select>
+
+    <div class="flashcard-container" id="flashcardContainer"></div>
+
+    <div class="flashcard-controls">
+      <button onclick="prevCard()">◀ Trước</button>
+      <button onclick="nextCard()">Tiếp ▶</button>
+    </div>
+  </div>
+
+  <img class="corner-image" src="/images/icon.png" alt="character" />
+
+  <script>
+    let cards = [], currentIndex = 0;
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("show");
+    }
+
+    function flipCard(card) {
+      card.classList.toggle("flip");
+    }
+
+    function renderCard(index) {
+      const container = document.getElementById("flashcardContainer");
+      container.innerHTML = ""; // clear
+
+      if (cards.length === 0) {
+        container.innerHTML = "<p>Không có từ nào.</p>";
+        return;
+      }
+
+      const card = document.createElement("div");
+      card.className = "flip-card";
+      card.onclick = () => flipCard(card);
+
+      card.innerHTML = `
+        <div class="flip-card-inner">
+          <div class="flip-card-front">${cards[index].nghia_TV}</div>
+          <div class="flip-card-back">${cards[index].tu_TA}</div>
+        </div>
+      `;
+
+      container.appendChild(card);
+    }
+
+    function prevCard() {
+      if (cards.length === 0) return;
+      currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+      renderCard(currentIndex);
+    }
+
+    function nextCard() {
+      if (cards.length === 0) return;
+      currentIndex = (currentIndex + 1) % cards.length;
+      renderCard(currentIndex);
+    }
+
+    async function loadSets() {
+      const res = await fetch("/vocab-sets");
+      const sets = await res.json();
+      const select = document.getElementById("vocabSelect");
+      sets.forEach(set => {
+        const opt = document.createElement("option");
+        opt.value = set.id_btv;
+        opt.textContent = set.name_btv;
+        select.appendChild(opt);
+      });
+    }
+
+    document.getElementById("vocabSelect").addEventListener("change", async function () {
+      const id = this.value;
+      const res = await fetch(`/flashcards/${id}`);
+      cards = await res.json();
+      currentIndex = 0;
+      renderCard(currentIndex);
+    });
+
+    window.onload = loadSets;
+  </script>
+</body>
+</html>

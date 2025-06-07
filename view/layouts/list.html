@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Danh sách từ vựng</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body>
+  <!-- Nội dung chính -->
+  <div class="main">
+    <h1><span class="material-symbols-outlined">menu_book</span> Danh sách các bộ từ vựng</h1>
+    <!-- Thẻ vocab-card sẽ được thêm động bằng JavaScript -->
+  </div>
+
+  <!-- Nhân vật minh hoạ -->
+  <img src="/images/icon.png" class="corner-image" alt="nhân vật học sinh" />
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("show");
+    }
+
+    // Load danh sách từ backend
+    window.onload = async function () {
+      const res = await fetch("/vocab-sets");
+      const sets = await res.json();
+      const container = document.querySelector(".main");
+
+      sets.forEach(set => {
+        const card = document.createElement("div");
+        card.className = "vocab-card";
+        card.innerHTML = `
+          <div class="icon-box red"><span class="material-symbols-outlined">library_books</span></div>
+          <div class="content"><h3>Bộ từ: ${set.name_btv}</h3></div>
+          <div class="actions">
+              <button class="btn view" onclick="viewSet(${set.id_btv})">👁 Xem</button>
+              <button class="btn edit" onclick="editSet(${set.id_btv})">✏️ Sửa</button>
+              <button class="btn delete" onclick="deleteSet(${set.id_btv})">🗑 Xóa</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    };
+
+    // 👉 Xem chi tiết (chuyển sang flashcard)
+    function viewSet(id) {
+      window.location.href = `/flashcard?id=${id}`;
+    }
+
+    // 👉 Sửa bộ (có thể chuyển đến form sửa nếu có)
+    function editSet(id) {
+  window.location.href = `/create?edit=${id}`;
+}
+    // 👉 Xóa bộ
+    async function deleteSet(id) {
+      const confirmed = confirm("Bạn có chắc muốn xóa bộ này?");
+      if (!confirmed) return;
+
+      const res = await fetch(`/vocab-sets/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      alert(data.message || data.error);
+      window.location.reload();
+    }
+  </script>
+</body>
+
+</html>

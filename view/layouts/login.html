@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+
+    input {
+      padding: 8px;
+      margin: 5px;
+      width: 200px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Thay đổi input IDs và xử lý sự kiện -->
+  <h2>Login</h2>
+  <form id="login-form" method="POST">
+    <input type="text" placeholder="Username" id="username" required><br>
+    <input type="password" placeholder="Password" id="password" required><br>
+    <p id="error_message" style="color: red;"></p>
+    <button type="submit">Login</button>
+  </form>
+
+  </form>
+  <p>Don't have an account ? <a href="/auth/register">Sign up</a></p>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+      event.preventDefault(); // Ngăn chặn hành động mặc định của form
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          window.location.href = '/'; // Redirect to home page
+        } else {
+          const errorData = await response.json();
+          document.getElementById('error_message').innerText = errorData.message || 'Login failed. Please try again.';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('error_message').innerText = 'An error occurred while logging in. Please try again later.'; s
+      }
+    });
+  </script>
+</body>
+
+</html>
